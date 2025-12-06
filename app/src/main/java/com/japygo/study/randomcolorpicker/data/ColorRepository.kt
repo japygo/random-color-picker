@@ -70,4 +70,15 @@ class ColorRepository(private val context: Context) {
             preferences[SAVED_COLORS_KEY] = newList.joinToString(",")
         }
     }
+
+    suspend fun removeSavedColor(color: Long) {
+        context.dataStore.edit { preferences ->
+            val currentString = preferences[SAVED_COLORS_KEY] ?: ""
+            if (currentString.isNotEmpty()) {
+                val currentList = currentString.split(",").mapNotNull { it.toLongOrNull() }
+                val newList = currentList.filter { it != color }
+                preferences[SAVED_COLORS_KEY] = newList.joinToString(",")
+            }
+        }
+    }
 }

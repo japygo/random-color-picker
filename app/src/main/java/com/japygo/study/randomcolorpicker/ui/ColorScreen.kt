@@ -36,6 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.japygo.study.randomcolorpicker.MainViewModel
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColorScreen(
     viewModel: MainViewModel = viewModel(),
@@ -181,7 +185,13 @@ fun ColorScreen(
                                 .clip(CircleShape)
                                 .background(color)
                                 .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
-                                .clickable { viewModel.restoreColor(color) },
+                                .combinedClickable(
+                                    onClick = { viewModel.restoreColor(color) },
+                                    onLongClick = {
+                                        viewModel.deleteSavedColor(color)
+                                        Toast.makeText(context, "Color Deleted", Toast.LENGTH_SHORT).show()
+                                    }
+                                ),
                         )
                     }
                 }

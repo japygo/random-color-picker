@@ -66,6 +66,12 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
             repository.addSavedColor(currentColor.toArgb().toLong())
         }
     }
+    
+    fun deleteSavedColor(color: Color) {
+        viewModelScope.launch {
+            repository.removeSavedColor(color.toArgb().toLong())
+        }
+    }
 
     private fun updateColor(color: Color, addToHistory: Boolean = true) {
         val hex = String.format(
