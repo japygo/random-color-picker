@@ -13,10 +13,21 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 class ColorRepository(private val context: Context) {
     private val RECENT_COLORS_KEY = stringPreferencesKey("recent_colors")
+    private val SAVED_COLORS_KEY = stringPreferencesKey("saved_colors")
 
     val recentColorsFlow: Flow<List<Long>> = context.dataStore.data
         .map { preferences ->
             val colorsString = preferences[RECENT_COLORS_KEY] ?: ""
+            if (colorsString.isEmpty()) {
+                emptyList()
+            } else {
+                colorsString.split(",").mapNotNull { it.toLongOrNull() }
+            }
+        }
+
+    val savedColorsFlow: Flow<List<Long>> = context.dataStore.data
+        .map { preferences ->
+            val colorsString = preferences[SAVED_COLORS_KEY] ?: ""
             if (colorsString.isEmpty()) {
                 emptyList()
             } else {
@@ -42,6 +53,21 @@ class ColorRepository(private val context: Context) {
             // Add new color to top, distinct, take 5
             val newList = (listOf(color) + currentList).distinct().take(5)
             preferences[RECENT_COLORS_KEY] = newList.joinToString(",")
+        }
+    }
+
+    suspend fun addSavedColor(color: Long) {
+        context.dataStore.edit { preferences ->
+            val currentString = preferences[SAVED_COLORS_KEY] ?: ""
+            val currentList = if (currentString.isEmpty()) {
+                emptyList()
+            } else {
+                currentString.split(",").mapNotNull { it.toLongOrNull() }
+            }
+
+            // Persistence logic: LIFO (Stack) max 5, like Recent Colors
+            val newList = (listOf(color) + currentList).distinct().take(5)
+            preferences[SAVED_COLORS_KEY] = newList.joinToString(",")
         }
     }
 }

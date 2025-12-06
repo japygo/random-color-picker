@@ -18,6 +18,7 @@ data class ColorUiState(
     val rgbCode: String = "RGB(255, 255, 255)",
     val brightness: Float = 1f, // 0f to 1f
     val history: List<Color> = emptyList(),
+    val savedColors: List<Color> = emptyList(),
 )
 
 class MainViewModel(private val repository: ColorRepository) : ViewModel() {
@@ -25,13 +26,22 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
     val uiState: StateFlow<ColorUiState> = _uiState.asStateFlow()
 
     init {
-        // Observe history from repository
+        // Observe recent history
         viewModelScope.launch {
             repository.recentColorsFlow.collect { colorLongs ->
                 val colors = colorLongs.map { Color(it.toInt()) }
                 _uiState.update { it.copy(history = colors) }
             }
         }
+        
+        // Observe saved colors
+        viewModelScope.launch {
+            repository.savedColorsFlow.collect { colorLongs ->
+                val colors = colorLongs.map { Color(it.toInt()) }
+                _uiState.update { it.copy(savedColors = colors) }
+            }
+        }
+        
         generateNewColor(addToHistory = true)
     }
 
@@ -47,6 +57,13 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
     fun updateBrightness(brightness: Float) {
         _uiState.update { currentState ->
             currentState.copy(brightness = brightness)
+        }
+    }
+    
+    fun bookmarkColor() {
+        val currentColor = _uiState.value.currentColor
+        viewModelScope.launch {
+            repository.addSavedColor(currentColor.toArgb().toLong())
         }
     }
 

@@ -110,7 +110,22 @@ fun ColorScreen(
                 ),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text("New Color")
+                Text("New")
+            }
+            
+            Button(
+                onClick = { 
+                    viewModel.bookmarkColor()
+                    Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50), // Green for save
+                    contentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("Save")
             }
 
             OutlinedButton(
@@ -121,7 +136,7 @@ fun ColorScreen(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text("Copy Code")
+                Text("Copy")
             }
         }
 
@@ -136,6 +151,30 @@ fun ColorScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     uiState.history.forEach { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
+                                .clickable { viewModel.restoreColor(color) },
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Saved Colors
+        if (uiState.savedColors.isNotEmpty()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("Saved Colors", style = MaterialTheme.typography.labelLarge)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    uiState.savedColors.forEach { color ->
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
