@@ -1,9 +1,11 @@
 package com.japygo.study.randomcolorpicker.ui
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +39,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.japygo.study.randomcolorpicker.MainViewModel
-
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -116,9 +117,9 @@ fun ColorScreen(
             ) {
                 Text("New")
             }
-            
+
             Button(
-                onClick = { 
+                onClick = {
                     viewModel.bookmarkColor()
                     Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
                 },
@@ -167,7 +168,7 @@ fun ColorScreen(
                 }
             }
         }
-        
+
         // Saved Colors
         if (uiState.savedColors.isNotEmpty()) {
             Column(
@@ -180,19 +181,48 @@ fun ColorScreen(
                 ) {
                     uiState.savedColors.forEach { color ->
                         Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
-                                .combinedClickable(
-                                    onClick = { viewModel.restoreColor(color) },
-                                    onLongClick = {
-                                        viewModel.deleteSavedColor(color)
-                                        Toast.makeText(context, "Color Deleted", Toast.LENGTH_SHORT).show()
-                                    }
-                                ),
-                        )
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
+                                    .combinedClickable(
+                                        onClick = { viewModel.restoreColor(color) },
+                                        onLongClick = {
+                                            viewModel.setDeleteCandidate(color)
+                                        },
+                                    ),
+                            )
+
+                            // Delete Overlay
+                            if (uiState.deleteCandidate == color) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .clickable {
+                                            viewModel.deleteSavedColor(color)
+                                            Toast.makeText(
+                                                context,
+                                                "Color Deleted",
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                        },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                                        contentDescription = "Delete",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

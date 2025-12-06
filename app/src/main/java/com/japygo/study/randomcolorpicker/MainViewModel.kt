@@ -19,6 +19,7 @@ data class ColorUiState(
     val brightness: Float = 1f, // 0f to 1f
     val history: List<Color> = emptyList(),
     val savedColors: List<Color> = emptyList(),
+    val deleteCandidate: Color? = null,
 )
 
 class MainViewModel(private val repository: ColorRepository) : ViewModel() {
@@ -67,9 +68,17 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
         }
     }
     
+    fun setDeleteCandidate(color: Color?) {
+        _uiState.update { it.copy(deleteCandidate = color) }
+    }
+    
     fun deleteSavedColor(color: Color) {
         viewModelScope.launch {
             repository.removeSavedColor(color.toArgb().toLong())
+            // Clear candidate if we just deleted it
+            if (_uiState.value.deleteCandidate == color) {
+                setDeleteCandidate(null)
+            }
         }
     }
 
@@ -87,7 +96,8 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
             currentState.copy(
                 currentColor = color,
                 hexCode = hex,
-                rgbCode = rgb
+                rgbCode = rgb,
+                deleteCandidate = null // clear candidate when selecting new color
             )
         }
         
