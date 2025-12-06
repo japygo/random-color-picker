@@ -120,8 +120,12 @@ fun ColorScreen(
 
             Button(
                 onClick = {
-                    viewModel.bookmarkColor()
-                    Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
+                    val success = viewModel.bookmarkColor()
+                    if (success) {
+                        Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Storage Full! Delete some colors.", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(

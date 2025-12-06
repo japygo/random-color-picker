@@ -61,11 +61,15 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
         }
     }
     
-    fun bookmarkColor() {
+    fun bookmarkColor(): Boolean {
+        if (_uiState.value.savedColors.size >= 5) {
+            return false
+        }
         val currentColor = _uiState.value.currentColor
         viewModelScope.launch {
             repository.addSavedColor(currentColor.toArgb().toLong())
         }
+        return true
     }
     
     fun setDeleteCandidate(color: Color?) {
