@@ -8,20 +8,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.japygo.study.randomcolorpicker.data.ColorRepository
 import com.japygo.study.randomcolorpicker.ui.ColorScreen
 import com.japygo.study.randomcolorpicker.ui.theme.RandomColorPickerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val repository = ColorRepository(applicationContext)
+        val factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return MainViewModel(repository) as T
+            }
+        }
+        
         enableEdgeToEdge()
         setContent {
             RandomColorPickerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    ColorScreen()
+                    val viewModel: MainViewModel = viewModel(factory = factory)
+                    ColorScreen(viewModel = viewModel)
                 }
             }
         }
