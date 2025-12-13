@@ -108,7 +108,7 @@ fun ColorScreen(
 @Composable
 fun ColorHeader() {
     Text(
-        text = "Random Hex Color",
+        text = "HueQuick",
         style = MaterialTheme.typography.headlineMedium,
         fontWeight = FontWeight.Bold,
         color = Color.Black,
