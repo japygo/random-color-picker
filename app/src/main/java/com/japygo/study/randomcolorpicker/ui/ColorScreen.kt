@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,6 +45,7 @@ import com.japygo.study.randomcolorpicker.MainViewModel
 @Composable
 fun ColorScreen(
     viewModel: MainViewModel = viewModel(),
+    onCameraClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -51,13 +54,12 @@ fun ColorScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeContentPadding()
             .background(Color(0xFFF5F5F5))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
     ) {
-        ColorHeader()
-
         ColorDisplaySection(
             color = uiState.currentColor,
             hexCode = uiState.hexCode,
@@ -66,6 +68,7 @@ fun ColorScreen(
 
         ActionButtonsSection(
             onNewColor = { viewModel.generateNewColor() },
+            onCameraClick = onCameraClick,
             onSaveColor = {
                 val success = viewModel.bookmarkColor()
                 if (success) {
@@ -163,44 +166,72 @@ fun ColorDisplaySection(
 @Composable
 fun ActionButtonsSection(
     onNewColor: () -> Unit,
+    onCameraClick: () -> Unit,
     onSaveColor: () -> Unit,
     onCopyCode: () -> Unit,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Button(
-            onClick = onNewColor,
-            modifier = Modifier.weight(1f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
-                contentColor = Color.White,
-            ),
-            shape = RoundedCornerShape(12.dp),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("New")
+            Button(
+                onClick = onNewColor,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("New")
+            }
+
+            Button(
+                onClick = onCameraClick,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Blue, // Or some distinct color
+                    contentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.CameraAlt,
+                    contentDescription = "Camera",
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(" Cam", modifier = Modifier.padding(start = 4.dp))
+            }
         }
 
-        Button(
-            onClick = onSaveColor,
-            modifier = Modifier.weight(1f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White,
-            ),
-            shape = RoundedCornerShape(12.dp),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Save")
-        }
+            Button(
+                onClick = onSaveColor,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50),
+                    contentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("Save")
+            }
 
-        OutlinedButton(
-            onClick = onCopyCode,
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Text("Copy")
+            OutlinedButton(
+                onClick = onCopyCode,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("Copy")
+            }
         }
     }
 }
@@ -291,5 +322,5 @@ fun SavedColorListSection(
 @Preview(showBackground = true)
 @Composable
 fun ColorScreenPreview() {
-    ColorScreen()
+    ColorScreen(onCameraClick = {})
 }

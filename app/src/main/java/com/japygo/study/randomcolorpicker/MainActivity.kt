@@ -11,7 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.japygo.study.randomcolorpicker.data.ColorRepository
+import com.japygo.study.randomcolorpicker.ui.CameraScreen
 import com.japygo.study.randomcolorpicker.ui.ColorScreen
 import com.japygo.study.randomcolorpicker.ui.theme.RandomColorPickerTheme
 
@@ -34,8 +38,31 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val navController = rememberNavController()
                     val viewModel: MainViewModel = viewModel(factory = factory)
-                    ColorScreen(viewModel = viewModel)
+
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            ColorScreen(
+                                viewModel = viewModel,
+                                onCameraClick = {
+                                    navController.navigate("camera")
+                                }
+                            )
+                        }
+                        
+                        composable("camera") {
+                            CameraScreen(
+                                onColorCaptured = { color ->
+                                    viewModel.setCapturedColor(color)
+                                    navController.popBackStack()
+                                },
+                                onBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

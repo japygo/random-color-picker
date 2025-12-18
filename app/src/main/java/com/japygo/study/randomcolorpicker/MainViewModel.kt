@@ -119,4 +119,8 @@ class MainViewModel(private val repository: ColorRepository) : ViewModel() {
     fun restoreColor(color: Color) {
         updateColor(color, addToHistory = false)
     }
+
+    fun setCapturedColor(color: Color) {
+        updateColor(color, addToHistory = true)
+    }
 }
