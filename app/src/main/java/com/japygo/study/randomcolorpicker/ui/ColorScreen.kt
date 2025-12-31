@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.CameraAlt
@@ -40,6 +42,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.japygo.study.randomcolorpicker.MainViewModel
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import android.app.Activity
+import com.japygo.study.randomcolorpicker.ui.ExitConfirmDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,49 +58,68 @@ fun ColorScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    
+    // Exit Dialog State
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    // Intercept Back Press
+    BackHandler(enabled = true) {
+        showExitDialog = true
+    }
+
+    if (showExitDialog) {
+        ExitConfirmDialog(
+            onDismiss = { showExitDialog = false },
+            onExit = {
+                (context as? Activity)?.finish()
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .safeContentPadding()
-            .background(Color(0xFFF5F5F5))
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            .background(Color(0xFFF5F5F5)),
     ) {
-        ColorDisplaySection(
-            color = uiState.currentColor,
-            hexCode = uiState.hexCode,
-            rgbCode = uiState.rgbCode,
-        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+        ) {
+            ColorDisplaySection(
+                color = uiState.currentColor,
+                hexCode = uiState.hexCode,
+                rgbCode = uiState.rgbCode,
+            )
 
-        ActionButtonsSection(
-            onNewColor = { viewModel.generateNewColor() },
-            onCameraClick = onCameraClick,
-            onSaveColor = {
-                val success = viewModel.bookmarkColor()
-                if (success) {
-                    Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Storage Full! Delete some colors.", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            },
-            onCopyCode = {
-                clipboardManager.setText(AnnotatedString(uiState.hexCode))
-                Toast.makeText(context, "Copied!", Toast.LENGTH_SHORT).show()
-            },
-        )
+            ActionButtonsSection(
+                onNewColor = { viewModel.generateNewColor() },
+                onCameraClick = onCameraClick,
+                onSaveColor = {
+                    val success = viewModel.bookmarkColor()
+                    if (success) {
+                        Toast.makeText(context, "Color Saved!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Storage Full! Delete some colors.", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                },
+                onCopyCode = {
+                    clipboardManager.setText(AnnotatedString(uiState.hexCode))
+                    Toast.makeText(context, "Copied!", Toast.LENGTH_SHORT).show()
+                },
+            )
 
-        if (uiState.history.isNotEmpty()) {
             ColorListSection(
                 title = "Recent Colors",
                 colors = uiState.history,
                 onColorClick = { viewModel.restoreColor(it) },
             )
-        }
 
-        if (uiState.savedColors.isNotEmpty()) {
             SavedColorListSection(
                 title = "Saved Colors",
                 colors = uiState.savedColors,
@@ -104,6 +131,16 @@ fun ColorScreen(
                     Toast.makeText(context, "Color Deleted", Toast.LENGTH_SHORT).show()
                 },
             )
+        }
+        
+        // Banner Ad (Wrap in Box with fixed height to prevent UI jump)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp), // Reserve space for AdSize.BANNER
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            com.japygo.study.randomcolorpicker.ads.AdMobManager.BannerAd()
         }
     }
 }
@@ -249,16 +286,24 @@ fun ColorListSection(
         Text(title, style = MaterialTheme.typography.labelLarge)
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.height(36.dp)
         ) {
-            colors.forEach { color ->
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
-                        .clickable { onColorClick(color) },
-                )
+            if (colors.isEmpty()) {
+                // Placeholder to keep the height valid (or just the Modifier.height is enough for Row?)
+                // Row with fixed height effectively reserves space.
+                // We'll leave it empty but the modifier ensures space.
+                Spacer(modifier = Modifier.size(36.dp)) 
+            } else {
+                colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
+                            .clickable { onColorClick(color) },
+                    )
+                }
             }
         }
     }
@@ -281,36 +326,41 @@ fun SavedColorListSection(
         Text(title, style = MaterialTheme.typography.labelLarge)
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.height(36.dp)
         ) {
-            colors.forEach { color ->
-                Box(modifier = Modifier.size(36.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
-                            .combinedClickable(
-                                onClick = { onColorClick(color) },
-                                onLongClick = { onColorLongClick(color) },
-                            ),
-                    )
-
-                    if (deleteCandidate == color) {
+            if (colors.isEmpty()) {
+                 Spacer(modifier = Modifier.size(36.dp))
+            } else {
+                colors.forEach { color ->
+                    Box(modifier = Modifier.size(36.dp)) {
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.5f))
-                                .clickable { onDeleteConfirm(color) },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            androidx.compose.material3.Icon(
-                                imageVector = androidx.compose.material.icons.Icons.Default.Close,
-                                contentDescription = "Delete",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp),
-                            )
+                                .background(color)
+                                .border(1.dp, Color.Gray.copy(alpha = 0.5f), CircleShape)
+                                .combinedClickable(
+                                    onClick = { onColorClick(color) },
+                                    onLongClick = { onColorLongClick(color) },
+                                ),
+                        )
+
+                        if (deleteCandidate == color) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .clickable { onDeleteConfirm(color) },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                androidx.compose.material3.Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                                    contentDescription = "Delete",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     }
                 }

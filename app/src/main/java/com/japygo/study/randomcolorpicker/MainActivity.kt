@@ -23,6 +23,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize AdMob
+        com.japygo.study.randomcolorpicker.ads.AdMobManager.initialize(this)
+        
         val repository = ColorRepository(applicationContext)
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -55,10 +58,16 @@ class MainActivity : ComponentActivity() {
                             CameraScreen(
                                 onColorCaptured = { color ->
                                     viewModel.setCapturedColor(color)
+                                    // 1. Navigate Back to Home first
                                     navController.popBackStack()
+                                    // 2. Then Check/Show Ad
+                                    com.japygo.study.randomcolorpicker.ads.AdMobManager.handleCameraExit(this@MainActivity)
                                 },
                                 onBack = {
+                                    // 1. Navigate Back to Home first
                                     navController.popBackStack()
+                                    // 2. Then Check/Show Ad
+                                    com.japygo.study.randomcolorpicker.ads.AdMobManager.handleCameraExit(this@MainActivity)
                                 }
                             )
                         }

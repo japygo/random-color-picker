@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,11 +24,54 @@ android {
     }
 
     buildTypes {
+        fun getProps(isDebug: Boolean): Properties {
+            val props = Properties()
+            val file =
+                if (isDebug) rootProject.file("local.properties") else rootProject.file("release.properties")
+            if (file.exists()) props.load(FileInputStream(file))
+            return props
+        }
+
+        debug {
+            val props = getProps(true)
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_ID",
+                "\"${props.getProperty("ADMOB_BANNER_ID") ?: ""}\"",
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_ID",
+                "\"${props.getProperty("ADMOB_INTERSTITIAL_ID") ?: ""}\"",
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_NATIVE_ID",
+                "\"${props.getProperty("ADMOB_NATIVE_ID") ?: ""}\"",
+            )
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
+            )
+            val props = getProps(false)
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_ID",
+                "\"${props.getProperty("ADMOB_BANNER_ID") ?: ""}\"",
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_ID",
+                "\"${props.getProperty("ADMOB_INTERSTITIAL_ID") ?: ""}\"",
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_NATIVE_ID",
+                "\"${props.getProperty("ADMOB_NATIVE_ID") ?: ""}\"",
             )
         }
     }
@@ -38,6 +84,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -48,6 +95,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.play.services.ads)
+    implementation(libs.guava)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

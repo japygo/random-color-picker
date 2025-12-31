@@ -97,7 +97,7 @@ fun CameraScreen(
                     val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                     cameraProviderFuture.addListener(
                         {
-                            val cameraProvider = cameraProviderFuture.get()
+                            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
                             val preview = Preview.Builder().build().also {
                                 it.setSurfaceProvider(previewView.surfaceProvider)
